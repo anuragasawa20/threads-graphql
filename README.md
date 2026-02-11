@@ -66,6 +66,3 @@ npm run dev:client
 11. **Feed** — Query posts, ordering
 12. **Like/Reply** — Relations, nested types
 
----
-
-**Note:** Build one feature at a time. Each step reinforces Node.js, GraphQL, and repository patterns.
