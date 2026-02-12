@@ -7,36 +7,41 @@
 import { getDb } from '../db/index.js';
 
 export const likeRepository = {
-  findById(id) {
+  async findById(id) {
     const db = getDb();
     return db.prepare('SELECT * FROM likes WHERE id = ?').get(id) ?? null;
   },
 
-  findAll(limit = 50, offset = 0) {
+  async findByIds(ids) {
     const db = getDb();
-    return db.prepare('SELECT * FROM likes ORDER BY created_at DESC LIMIT ? OFFSET ?').all(limit, offset);
+    return (await db.prepare('SELECT * FROM likes WHERE id IN (?)').all(ids)) ?? [];
   },
 
-  findByUserAndPost(userId, postId) {
+  async findAll(limit = 50, offset = 0) {
+    const db = getDb();
+    return (await db.prepare('SELECT * FROM likes ORDER BY created_at DESC LIMIT ? OFFSET ?').all(limit, offset)) ?? [];
+  },
+
+  async findByUserAndPost(userId, postId) {
     const db = getDb();
     return db.prepare('SELECT * FROM likes WHERE user_id = ? AND post_id = ?').get(userId, postId) ?? null;
   },
 
-  findByPostId(postId, limit = 100, offset = 0) {
+  async findByPostId(postId, limit = 100, offset = 0) {
     const db = getDb();
     return db
       .prepare('SELECT * FROM likes WHERE post_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?')
       .all(postId, limit, offset);
   },
 
-  findByUserId(userId, limit = 50, offset = 0) {
+  async findByUserId(userId, limit = 50, offset = 0) {
     const db = getDb();
     return db
       .prepare('SELECT * FROM likes WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?')
       .all(userId, limit, offset);
   },
 
-  create({ userId, postId }) {
+  async create({ userId, postId }) {
     const db = getDb();
     const existing = likeRepository.findByUserAndPost(userId, postId);
     if (existing) return existing;
@@ -45,23 +50,23 @@ export const likeRepository = {
     return likeRepository.findById(result.lastInsertRowid);
   },
 
-  delete(id) {
+  async delete(id) {
     const db = getDb();
     return db.prepare('DELETE FROM likes WHERE id = ?').run(id);
   },
 
-  deleteByUserAndPost(userId, postId) {
+  async deleteByUserAndPost(userId, postId) {
     const db = getDb();
     return db.prepare('DELETE FROM likes WHERE user_id = ? AND post_id = ?').run(userId, postId);
   },
 
-  getCountByPost(postId) {
+  async getCountByPost(postId) {
     const db = getDb();
     const row = db.prepare('SELECT COUNT(*) as count FROM likes WHERE post_id = ?').get(postId);
     return row?.count ?? 0;
   },
 
-  hasUserLikedPost(userId, postId) {
+  async hasUserLikedPost(userId, postId) {
     return likeRepository.findByUserAndPost(userId, postId) !== null;
   },
 };

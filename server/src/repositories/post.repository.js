@@ -7,32 +7,37 @@
 import { getDb } from '../db/index.js';
 
 export const postRepository = {
-  findById(id) {
+  async findById(id) {
     const db = getDb();
     return db.prepare('SELECT * FROM posts WHERE id = ?').get(id) ?? null;
   },
 
-  findByUserId(userId, limit = 50, offset = 0) {
+  async findByIds(ids) {
+    const db = getDb();
+    return (await db.prepare('SELECT * FROM posts WHERE id IN (?)').all(ids)) ?? [];
+  },
+
+  async findByUserId(userId, limit = 50, offset = 0) {
     const db = getDb();
     return db
       .prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?')
       .all(userId, limit, offset);
   },
 
-  findAll(limit = 50, offset = 0) {
+  async findAll(limit = 50, offset = 0) {
     const db = getDb();
     return db
       .prepare('SELECT * FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?')
       .all(limit, offset);
   },
 
-  create({ userId, content }) {
+  async create({ userId, content }) {
     const db = getDb();
     const result = db.prepare('INSERT INTO posts (user_id, content) VALUES (?, ?)').run(userId, content);
     return postRepository.findById(result.lastInsertRowid);
   },
 
-  update(id, { content }) {
+  async update(id, { content }) {
     const db = getDb();
     const post = postRepository.findById(id);
     if (!post) return null;
@@ -41,18 +46,18 @@ export const postRepository = {
     return postRepository.findById(id);
   },
 
-  delete(id) {
+  async delete(id) {
     const db = getDb();
     return db.prepare('DELETE FROM posts WHERE id = ?').run(id);
   },
 
-  getLikeCount(postId) {
+  async getLikeCount(postId) {
     const db = getDb();
     const row = db.prepare('SELECT COUNT(*) as count FROM likes WHERE post_id = ?').get(postId);
     return row?.count ?? 0;
   },
 
-  getCommentCount(postId) {
+  async getCommentCount(postId) {
     const db = getDb();
     const row = db.prepare('SELECT COUNT(*) as count FROM comments WHERE post_id = ?').get(postId);
     return row?.count ?? 0;

@@ -13,3 +13,4 @@ npm-debug.log*
 .specstory/
 docs/
 .cursorindexingignore
+data/*.db

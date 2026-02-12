@@ -8,27 +8,32 @@
 import { getDb } from '../db/index.js';
 
 export const userRepository = {
-  findById(id) {
+  async findById(id) {
     const db = getDb();
     return db.prepare('SELECT * FROM users WHERE id = ?').get(id) ?? null;
   },
 
-  findByEmail(email) {
+  async findByIds(ids) {
+    const db = getDb();
+    return (await db.prepare('SELECT * FROM users WHERE id IN (?)').all(ids)) ?? [];
+  },
+
+  async findByEmail(email) {
     const db = getDb();
     return db.prepare('SELECT * FROM users WHERE email = ?').get(email) ?? null;
   },
 
-  findByUsername(username) {
+  async findByUsername(username) {
     const db = getDb();
     return db.prepare('SELECT * FROM users WHERE username = ?').get(username) ?? null;
   },
 
-  findAll(limit = 50, offset = 0) {
+  async findAll(limit = 50, offset = 0) {
     const db = getDb();
     return db.prepare('SELECT * FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?').all(limit, offset);
   },
 
-  create({ username, email, passwordHash, displayName = null, avatarUrl = null, bio = null }) {
+  async create({ username, email, passwordHash, displayName = null, avatarUrl = null, bio = null }) {
     const db = getDb();
     const result = db
       .prepare(
@@ -39,7 +44,7 @@ export const userRepository = {
     return userRepository.findById(result.lastInsertRowid);
   },
 
-  update(id, { username, email, displayName, avatarUrl, bio }) {
+  async update(id, { username, email, displayName, avatarUrl, bio }) {
     const db = getDb();
     const user = userRepository.findById(id);
     if (!user) return null;
@@ -77,7 +82,7 @@ export const userRepository = {
     return userRepository.findById(id);
   },
 
-  updatePassword(id, passwordHash) {
+  async updatePassword(id, passwordHash) {
     const db = getDb();
     db.prepare('UPDATE users SET password_hash = ?, updated_at = datetime("now") WHERE id = ?').run(
       passwordHash,
@@ -86,7 +91,7 @@ export const userRepository = {
     return userRepository.findById(id);
   },
 
-  delete(id) {
+  async delete(id) {
     const db = getDb();
     return db.prepare('DELETE FROM users WHERE id = ?').run(id);
   },
