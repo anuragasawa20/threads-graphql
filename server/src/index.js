@@ -13,7 +13,7 @@ import { typeDefs } from './graphql/schema.js';
 import { resolvers } from './graphql/resolvers.js';
 import { initDb } from './db/index.js';
 import { getUserFromRequest } from './auth/jwt.js';
-import { userLoader } from './graphql/dataloader.js';
+import { createDataLoader } from './graphql/dataloader.js';
 
 // Initialize database
 initDb();
@@ -36,9 +36,7 @@ app.use(
   expressMiddleware(server, {
     context: async ({ req }) => ({
       user: getUserFromRequest(req),
-      loaders: {
-        userLoader,
-      },
+      loaders: createDataLoader(),
     }),
   })
 );
