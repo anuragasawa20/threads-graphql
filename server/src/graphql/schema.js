@@ -20,6 +20,18 @@ export const typeDefs = `#graphql
     author: User!
     created_at: String!
     updated_at: String!
+    comments: [Comment]
+    likes: [Likes]
+  }
+
+  type Comment {
+    id: ID!
+    content: String!
+    author: User!
+    post: Post!
+    parent: Comment
+    created_at: String!
+    updated_at: String!
   }
 
   type Likes{
@@ -45,6 +57,8 @@ export const typeDefs = `#graphql
     getPostsByUser(userId: ID!, limit: Int, offset: Int): [Post]
     getAllLikes:[Likes]
     getLikes(post_id: ID!): [Likes]
+    getPostWithComments(id: ID!): Post
+    getCommentsByUserAndPost(userId: ID!, postId: ID!): [Comment]
   }
 
   type Mutation {

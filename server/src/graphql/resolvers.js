@@ -56,6 +56,12 @@ export const resolvers = {
     getLikes: async (_, { post_id, limit = 100, offset = 0 }) => {
       return findLikesByPostIdWithUserAndPost(post_id, limit, offset);
     },
+    getPostWithComments: async (_, { id }) => {
+      return postRepository.findPostWithCommentsById(id);
+    },
+    getCommentsByUserAndPost: async (_, { userId, postId }) => {
+      return postRepository.findCommentsByUserAndPost(userId, postId);
+    },
   },
   Mutation: {
     _placeholder: () => true,
@@ -103,7 +109,6 @@ export const resolvers = {
       return user ? { ...user, id: String(user.id) } : null;
     },
   },
-
   Likes: {
     user: (parent) => {
       if (parent.user) return parent.user;

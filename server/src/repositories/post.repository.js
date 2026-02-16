@@ -5,6 +5,7 @@
  */
 
 import { getDb } from '../db/index.js';
+import { userRepository } from './user.repository.js';
 
 export const postRepository = {
   async findById(id) {
@@ -61,5 +62,25 @@ export const postRepository = {
     const db = getDb();
     const row = db.prepare('SELECT COUNT(*) as count FROM comments WHERE post_id = ?').get(postId);
     return row?.count ?? 0;
+  },
+
+  async findPostWithCommentsById(id) {
+    const db = getDb();
+    const row = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
+    if (!row) return null;
+    const comments = db.prepare('SELECT * FROM comments WHERE post_id = ?').all(id);
+    return comments.map(comment => ({
+      ...comment,
+      author: userRepository.findById(comment.user_id),
+    }));
+  },
+
+  async findCommentsByUserAndPost(userId, postId) {
+    const db = getDb();
+    const comments = db.prepare('SELECT * FROM comments WHERE user_id = ? AND post_id = ?').all(userId, postId);
+    return comments.map(comment => ({
+      ...comment,
+      author: userRepository.findById(comment.user_id),
+    }));
   },
 };
