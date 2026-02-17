@@ -10,7 +10,7 @@ export const typeDefs = `#graphql
   type User {
     id: ID!
     username: String!
-    email: String!
+    email: String!      # Owner and admin can see this
     display_name: String
   }
 
@@ -68,5 +68,6 @@ export const typeDefs = `#graphql
     login(email: String!, password: String!): AuthPayload
     "Create post - requires Authorization: Bearer <token> header. User from JWT."
     createPost(content: String!): Post
+    MakeLike(postId: ID!): Likes
   }
 `;

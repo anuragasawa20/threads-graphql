@@ -17,6 +17,8 @@ import {
   findAllLikesWithUserAndPost,
   findLikesByPostIdWithUserAndPost,
 } from '../data/joinQueries.js';
+import { Authorized } from '../auth/permission.js';
+import { Permissions } from '../auth/permission.js';
 
 function formatPost(post) {
   if (!post) return null;
@@ -100,6 +102,23 @@ export const resolvers = {
       if (!user) throw new Error('User not found');
       const post = postRepository.create({ userId, content });
       return formatPost(post);
+    },
+    MakeLike: async (_, { postId }, context) => {
+      const { userId } = context.user || {};
+      if (!userId) throw new Error('Authentication required. Send Authorization: Bearer <token>');
+      const user = userRepository.findById(userId);
+      if (!user) throw new Error('User not found');
+
+      if (!Authorized(Permissions.LIKE_CREATE, user || {})) throw new Error('Unauthorized');
+
+      const like = likeRepository.create({ userId, postId });
+      return like;
+    },
+  },
+  User: {
+    email: (parent, _, { user }) => {
+      if (user && (user.role === 'admin' || user.id === parent.id)) return parent.email;
+      return null;
     },
   },
   Post: {
